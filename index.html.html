@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Residencial Francia - Panel administrativo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --navy: #001f3f;
+            --tab-inactive: #003366;
+            --tab-active: #f8fafc;
+        }
+        body { background-color: #e2e8f0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* Barra Superior Azul Marino */
+        .navbar {
+            background-color: var(--navy);
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            z-index: 50;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .brand-zone { display: flex; align-items: center; min-width: 300px; }
+        .logo { height: 50px; margin-right: 15px; }
+
+        /* Pestañas Solapadas Estilo Carpeta */
+        .tabs-wrapper {
+            display: flex;
+            align-items: flex-end;
+            height: 100%;
+            flex-grow: 1;
+            justify-content: flex-end;
+            padding-right: 20px;
+        }
+        .tab {
+            background: var(--tab-inactive);
+            color: #94a3b8;
+            padding: 10px 30px;
+            margin-right: -15px; /* Solapado */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            white-space: nowrap;
+            clip-path: polygon(15% 0%, 85% 0%, 100% 100%, 0% 100%);
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .tab.active {
+            background: var(--tab-active);
+            color: var(--navy);
+            z-index: 10;
+            font-weight: bold;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.2);
+        }
+        .tab:hover:not(.active) {
+            background: #004080;
+            color: white;
+            z-index: 5;
+        }
+
+        /* Contenedor de la página cargada */
+        #main-viewport { width: 100%; flex-grow: 1; border: none; background: white; }
+
+        /* Modales */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <div class="brand-zone">
+            <img src="logo.png" alt="Logo" class="logo" onerror="this.src='https://via.placeholder.com/50?text=RF'">
+            <div class="flex flex-col">
+                <span class="font-bold text-xl tracking-wide">Residencial Francia</span>
+                <span class="text-xs uppercase text-blue-300 tracking-tighter">Panel administrativo</span>
+            </div>
+        </div>
+
+        <div id="tabs-container" class="tabs-wrapper">
+            <!-- Pestañas cargadas por JS -->
+        </div>
+
+        <div class="flex items-center gap-4 border-l border-blue-800 pl-4">
+            <button id="btn-admin" class="hidden bg-yellow-600 hover:bg-yellow-500 text-white px-3 py-1 rounded text-xs font-bold transition">ADMIN</button>
+            <button id="btn-logout" class="text-xs text-gray-400 hover:text-white uppercase tracking-widest">Salir</button>
+        </div>
+    </nav>
+
+    <!-- IFRAME (Aquí se verán los links) -->
+    <iframe id="main-viewport" src="about:blank"></iframe>
+
+    <!-- LOGIN MODAL -->
+    <div id="login-modal" class="modal active">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-96">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-black text-gray-800">ACCESO</h2>
+                <p class="text-gray-500 text-sm">Residencial Francia</p>
+            </div>
+            <div class="space-y-4">
+                <input type="email" id="login-email" placeholder="Usuario (Email)" class="w-full p-3 bg-gray-100 border-none rounded-lg focus:ring-2 focus:ring-blue-900 outline-none">
+                <input type="password" id="login-pass" placeholder="Contraseña" class="w-full p-3 bg-gray-100 border-none rounded-lg focus:ring-2 focus:ring-blue-900 outline-none">
+                <button id="btn-do-login" class="w-full bg-blue-900 text-white py-3 rounded-lg font-bold hover:bg-black transition duration-300">Entrar al Panel</button>
+            </div>
+            <p id="login-error" class="text-red-500 text-xs mt-4 text-center hidden">Datos incorrectos o sin acceso.</p>
+        </div>
+    </div>
+
+    <!-- PANEL ADMIN (MODAL) -->
+    <div id="admin-modal" class="modal">
+        <div class="bg-white p-6 rounded-xl w-full max-w-3xl max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-4 mb-4">
+                <h2 class="text-2xl font-bold text-navy">Gestión de Usuarios y Links</h2>
+                <button onclick="closeAdmin()" class="text-gray-400 hover:text-black text-3xl">&times;</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Columna Izquierda: Crear Usuario -->
+                <div class="bg-gray-50 p-4 rounded-lg border">
+                    <h3 class="font-bold mb-3 text-blue-900">Nuevo Usuario</h3>
+                    <input type="email" id="new-email" placeholder="Email del usuario" class="w-full p-2 mb-2 border rounded">
+                    <input type="password" id="new-pass" placeholder="Contraseña" class="w-full p-2 mb-2 border rounded">
+                    <select id="new-role" class="w-full p-2 mb-4 border rounded text-sm">
+                        <option value="user">Usuario Común</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                    <button id="btn-create-user" class="w-full bg-green-600 text-white py-2 rounded font-bold hover:bg-green-700">Registrar en DB</button>
+                </div>
+
+                <!-- Columna Derecha: Asignar Links -->
+                <div class="bg-gray-50 p-4 rounded-lg border">
+                    <h3 class="font-bold mb-3 text-blue-900">Asignar Pestaña / Link</h3>
+                    <select id="select-user-link" class="w-full p-2 mb-2 border rounded text-sm">
+                        <!-- Cargado por JS -->
+                    </select>
+                    <input type="text" id="link-title" placeholder="Nombre de la pestaña (ej: Reportes)" class="w-full p-2 mb-2 border rounded">
+                    <input type="text" id="link-url" placeholder="URL (https://...)" class="w-full p-2 mb-4 border rounded">
+                    <button id="btn-add-link" class="w-full bg-blue-600 text-white py-2 rounded font-bold hover:bg-blue-700">Agregar Pestaña</button>
+                </div>
+            </div>
+
+            <div id="admin-users-list" class="mt-8 space-y-2">
+                <!-- Lista de usuarios registrados -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
+
+        // CONFIGURACIÓN PROPORCIONADA
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7K_apgqcaH7Py2YhJoFt8rGXhpqk1QUk",
+            authDomain: "prueba-1-6987a.firebaseapp.com",
+            databaseURL: "https://prueba-1-6987a-default-rtdb.firebaseio.com",
+            projectId: "prueba-1-6987a",
+            storageBucket: "prueba-1-6987a.firebasestorage.app",
+            messagingSenderId: "447271440532",
+            appId: "1:447271440532:web:503ef4184ea50ee96f2481",
+            measurementId: "G-FF33QD461T"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let userData = null;
+
+        // LOGIN
+        document.getElementById('btn-do-login').onclick = async () => {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (e) {
+                const err = document.getElementById('login-error');
+                err.classList.remove('hidden');
+                setTimeout(() => err.classList.add('hidden'), 3000);
+            }
+        };
+
+        document.getElementById('btn-logout').onclick = () => signOut(auth);
+
+        // OBSERVAR USUARIO
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    userData = userDoc.data();
+                    document.getElementById('login-modal').classList.remove('active');
+                    if (userData.role === 'admin') document.getElementById('btn-admin').classList.remove('hidden');
+                    renderTabs(userData.links || []);
+                } else {
+                    alert("Usuario autenticado pero no configurado en Firestore.");
+                }
+            } else {
+                document.getElementById('login-modal').classList.add('active');
+                document.getElementById('btn-admin').classList.add('hidden');
+                document.getElementById('tabs-container').innerHTML = '';
+                document.getElementById('main-viewport').src = 'about:blank';
+            }
+        });
+
+        // RENDERIZADO DE PESTAÑAS SOLAPADAS
+        function renderTabs(links) {
+            const container = document.getElementById('tabs-container');
+            container.innerHTML = '';
+            
+            links.forEach((link, i) => {
+                const tab = document.createElement('div');
+                tab.className = `tab ${i === 0 ? 'active' : ''}`;
+                tab.innerText = link.title;
+                tab.onclick = () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById('main-viewport').src = link.url;
+                };
+                container.appendChild(tab);
+            });
+
+            if (links.length > 0) document.getElementById('main-viewport').src = links[0].url;
+        }
+
+        // PANEL ADMINISTRADOR
+        document.getElementById('btn-admin').onclick = () => {
+            document.getElementById('admin-modal').classList.add('active');
+            loadAdminData();
+        };
+
+        window.closeAdmin = () => document.getElementById('admin-modal').classList.remove('active');
+
+        function loadAdminData() {
+            onSnapshot(collection(db, "users"), (snapshot) => {
+                const select = document.getElementById('select-user-link');
+                const list = document.getElementById('admin-users-list');
+                select.innerHTML = '';
+                list.innerHTML = '<h4 class="font-bold text-gray-700 mb-2">Usuarios en el sistema:</h4>';
+
+                snapshot.forEach(d => {
+                    const u = d.data();
+                    // Llenar select
+                    const opt = document.createElement('option');
+                    opt.value = d.id;
+                    opt.innerText = u.email;
+                    select.appendChild(opt);
+
+                    // Llenar lista visual
+                    const item = document.createElement('div');
+                    item.className = "flex justify-between items-center p-2 bg-white border rounded text-sm";
+                    item.innerHTML = `<span><b>${u.email}</b> (${u.role})</span> <span class="text-blue-600">${u.links?.length || 0} links</span>`;
+                    list.appendChild(item);
+                });
+            });
+        }
+
+        // Agregar Link a Usuario seleccionado
+        document.getElementById('btn-add-link').onclick = async () => {
+            const uid = document.getElementById('select-user-link').value;
+            const title = document.getElementById('link-title').value;
+            const url = document.getElementById('link-url').value;
+
+            if(!title || !url) return alert("Completa los datos");
+
+            await updateDoc(doc(db, "users", uid), {
+                links: arrayUnion({ title, url })
+            });
+            alert("Pestaña agregada correctamente.");
+            document.getElementById('link-title').value = "";
+            document.getElementById('link-url').value = "";
+        };
+
+    </script>
+</body>
+</html>
