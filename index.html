@@ -3,50 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Residencial Francia - Panel administrativo</title>
+    <title>Residencial Francia - Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
             --navy: #001f3f;
             --tab-inactive: #003366;
-            --tab-active: #f8fafc;
+            --tab-active: #ffffff;
         }
-        body { background-color: #f0f2f5; overflow: hidden; height: 100vh; display: flex; flex-direction: column; margin: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f3f4f6; overflow: hidden; height: 100vh; display: flex; flex-direction: column; margin: 0; font-family: system-ui, -apple-system, sans-serif; }
         
+        /* BARRA SUPERIOR */
         .navbar {
             background-color: var(--navy);
-            height: 65px;
+            height: auto;
+            min-height: 70px;
             display: flex;
-            align-items: center;
-            padding: 0 20px;
+            flex-direction: column;
             color: white;
             z-index: 50;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        .logo { height: 45px; margin-right: 15px; }
-        .main-title { font-weight: 800; font-size: 1.2rem; }
-        .sub-title { font-size: 0.7rem; color: #93c5fd; text-transform: uppercase; font-weight: 600; }
+        @media (min-width: 768px) {
+            .navbar { flex-direction: row; height: 75px; padding: 0 20px; }
+        }
 
+        .brand-container {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            flex-shrink: 0;
+        }
+
+        .logo { height: 40px; margin-right: 12px; }
+        
+        /* PESTAÑAS SOLAPADAS CON SCROLL MÓVIL */
         .tabs-container {
             display: flex;
             flex-grow: 1;
-            justify-content: flex-end;
-            height: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: none; /* Firefox */
+            padding-top: 10px;
             align-items: flex-end;
-            padding-right: 10px;
+            margin-left: 10px;
         }
+        .tabs-container::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 
         .tab {
             background: var(--tab-inactive);
             color: #94a3b8;
-            padding: 8px 30px;
-            margin-right: -15px;
+            padding: 8px 25px;
+            margin-right: -12px;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
             clip-path: polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            white-space: nowrap;
             border: 1px solid rgba(255,255,255,0.05);
         }
 
@@ -57,28 +72,35 @@
             font-weight: bold;
         }
 
-        #content-frame { width: 100%; flex-grow: 1; border: none; background: #ffffff; }
+        /* IFRAME RESPONSIVO */
+        #content-frame { width: 100%; flex-grow: 1; border: none; background: white; }
 
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+        /* MODALES RESPONSIVOS */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
         .modal.active { display: flex; }
-        .box { background: white; border-radius: 15px; width: 100%; max-width: 400px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .admin-box { max-width: 800px; max-height: 90vh; overflow-y: auto; }
+        .box { background: white; border-radius: 12px; width: 100%; max-width: 400px; padding: 25px; color: #1a202c; }
+        .admin-box { max-width: 900px; height: 90vh; display: flex; flex-direction: column; }
     </style>
 </head>
 <body>
 
+    <!-- NAVBAR -->
     <nav class="navbar">
-        <img src="logo.png" alt="Logo" class="logo" onerror="this.src='https://via.placeholder.com/45?text=RF'">
-        <div class="flex flex-col min-w-[220px]">
-            <span class="main-title">Residencial Francia</span>
-            <span class="sub-title">Panel administrativo</span>
+        <div class="brand-container">
+            <img src="logo.png" alt="Logo" class="logo" onerror="this.src='https://via.placeholder.com/40?text=RF'">
+            <div class="flex flex-col">
+                <span id="nav-title" class="font-bold text-base md:text-lg leading-tight text-white">Residencial Francia</span>
+                <span id="nav-subtitle" class="text-[10px] md:text-xs text-blue-300 font-medium uppercase tracking-wider">Panel administrativo</span>
+            </div>
         </div>
 
-        <div id="tabs-wrapper" class="tabs-container"></div>
+        <div id="tabs-wrapper" class="tabs-container">
+            <!-- Pestañas -->
+        </div>
 
-        <div class="flex items-center gap-4 ml-4">
-            <button id="admin-btn" class="hidden bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded hover:bg-orange-400 transition">ADMIN</button>
-            <button id="logout-btn" class="text-xs text-gray-400 hover:text-white font-bold">SALIR</button>
+        <div class="flex items-center justify-between md:justify-end gap-3 p-2 md:p-0 bg-black/20 md:bg-transparent">
+            <button id="admin-btn" class="hidden bg-orange-500 text-white text-[10px] font-bold px-3 py-1.5 rounded uppercase">Admin</button>
+            <button id="logout-btn" class="text-[10px] text-gray-300 hover:text-white font-bold uppercase mr-4">Salir</button>
         </div>
     </nav>
 
@@ -86,30 +108,32 @@
 
     <!-- LOGIN MODAL -->
     <div id="login-modal" class="modal active">
-        <div class="box">
-            <h2 class="text-2xl font-black text-center mb-6 text-navy tracking-tighter">BIENVENIDO</h2>
+        <div class="box shadow-2xl border border-gray-100">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-black text-navy tracking-tight">ACCESO</h2>
+                <p class="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Residencial Francia</p>
+            </div>
             
             <div class="space-y-3">
-                <!-- Botón de Google -->
-                <button id="google-btn" class="w-full flex items-center justify-center gap-3 border border-gray-300 p-3 rounded-lg font-bold text-sm hover:bg-gray-50 transition">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-                    Continuar con Google
+                <button id="google-btn" class="w-full flex items-center justify-center gap-3 border border-gray-300 p-3 rounded-xl font-bold text-xs hover:bg-gray-50 transition shadow-sm">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="16">
+                    CONTINUAR CON GOOGLE
                 </button>
 
                 <div class="relative py-2">
                     <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
-                    <div class="relative flex justify-center text-[10px] uppercase"><span class="bg-white px-2 text-gray-400 font-bold">O usa tu correo</span></div>
+                    <div class="relative flex justify-center text-[9px] uppercase font-bold text-gray-400"><span class="bg-white px-2">O usar cuenta</span></div>
                 </div>
 
-                <input type="email" id="email" placeholder="Correo electrónico" class="w-full p-3 bg-gray-100 rounded-lg outline-none text-sm">
-                <input type="password" id="password" placeholder="Contraseña" class="w-full p-3 bg-gray-100 rounded-lg outline-none text-sm">
+                <input type="email" id="email" placeholder="Correo" class="w-full p-3 bg-gray-50 border rounded-xl outline-none text-sm">
+                <input type="password" id="password" placeholder="Clave" class="w-full p-3 bg-gray-50 border rounded-xl outline-none text-sm">
                 
                 <div class="flex gap-2">
-                    <button id="login-btn" class="flex-1 bg-blue-900 text-white py-3 rounded-lg font-bold text-xs uppercase tracking-wider">Entrar</button>
-                    <button id="register-btn" class="flex-1 bg-gray-100 text-navy py-3 rounded-lg font-bold text-xs uppercase tracking-wider">Registrarse</button>
+                    <button id="login-btn" class="flex-1 bg-blue-900 text-white py-3 rounded-xl font-bold text-xs">ENTRAR</button>
+                    <button id="register-btn" class="flex-1 bg-gray-100 text-navy py-3 rounded-xl font-bold text-xs">REGISTRAR</button>
                 </div>
 
-                <button id="guest-btn" class="w-full text-gray-500 text-[10px] font-bold uppercase mt-2 hover:text-navy transition">Entrar como invitado (Anónimo)</button>
+                <button id="guest-btn" class="w-full bg-navy/5 text-navy py-3 rounded-xl font-bold text-[10px] uppercase hover:bg-navy hover:text-white transition">Entrar como invitado</button>
             </div>
             <p id="error-msg" class="text-red-500 text-[10px] mt-4 text-center font-bold hidden"></p>
         </div>
@@ -118,29 +142,40 @@
     <!-- PANEL ADMIN -->
     <div id="admin-modal" class="modal">
         <div class="box admin-box">
-            <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 class="text-2xl font-bold text-navy">Gestión de Usuarios</h2>
+            <div class="flex justify-between items-center mb-4 border-b pb-4">
+                <h2 class="text-xl font-bold text-navy">Consola Administrativa</h2>
                 <button onclick="closeAdmin()" class="text-3xl">&times;</button>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto">
+                <!-- LISTA DE USUARIOS -->
                 <div class="bg-gray-50 p-4 rounded-xl">
-                    <h3 class="font-bold text-[10px] mb-4 text-blue-800 uppercase tracking-widest">1. Seleccionar Usuario</h3>
-                    <div id="user-list-admin" class="space-y-2 max-h-80 overflow-y-auto pr-2">
-                        <!-- Usuarios aquí -->
-                    </div>
+                    <h3 class="font-bold text-[10px] mb-3 text-gray-400 uppercase tracking-widest">1. Usuarios</h3>
+                    <div id="user-list-admin" class="space-y-2 overflow-y-auto pr-2"></div>
                 </div>
 
-                <div class="space-y-4">
-                    <h3 class="font-bold text-[10px] text-blue-800 uppercase tracking-widest">2. Asignar Links a: <br><span id="selected-user-name" class="text-orange-600 text-sm">Nadie seleccionado</span></h3>
-                    <input type="hidden" id="target-uid">
-                    <input type="text" id="link-name" placeholder="Nombre de pestaña (ej: Cámaras)" class="w-full p-3 border rounded-lg text-sm">
-                    <input type="text" id="link-url" placeholder="Link (https://...)" class="w-full p-3 border rounded-lg text-sm">
-                    <button id="add-link-btn" class="w-full bg-blue-900 text-white py-3 rounded-lg font-bold text-sm">AÑADIR PESTAÑA</button>
-                    
-                    <div class="mt-6 border-t pt-4">
-                        <h4 class="text-[10px] font-black text-gray-400 uppercase mb-2">Pestañas actuales del usuario:</h4>
-                        <div id="current-links-list" class="text-[10px] space-y-1 text-gray-600"></div>
+                <!-- CONFIGURACIÓN -->
+                <div class="space-y-5">
+                    <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                        <h3 class="font-bold text-[10px] text-blue-800 uppercase mb-3 tracking-widest">2. Personalizar Barra (Header)</h3>
+                        <input type="hidden" id="target-uid">
+                        <p class="text-[10px] mb-1 font-bold">Título de la barra:</p>
+                        <input type="text" id="edit-main-title" placeholder="Ej: Residencial Francia" class="w-full p-2 border rounded-lg text-xs mb-3">
+                        <p class="text-[10px] mb-1 font-bold">Subtítulo de la barra:</p>
+                        <input type="text" id="edit-sub-title" placeholder="Ej: Panel administrativo" class="w-full p-2 border rounded-lg text-xs">
+                        <button id="save-header-btn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-bold text-[10px] mt-3 uppercase">Guardar Títulos</button>
+                    </div>
+
+                    <div class="bg-orange-50 p-4 rounded-xl border border-orange-100">
+                        <h3 class="font-bold text-[10px] text-orange-800 uppercase mb-3 tracking-widest">3. Agregar Pestañas (Links)</h3>
+                        <input type="text" id="link-name" placeholder="Nombre Pestaña" class="w-full p-2 border rounded-lg text-xs mb-2">
+                        <input type="text" id="link-url" placeholder="URL (https://...)" class="w-full p-2 border rounded-lg text-xs mb-3">
+                        <button id="add-link-btn" class="w-full bg-navy text-white py-2 rounded-lg font-bold text-[10px] uppercase">Añadir Link</button>
+                    </div>
+
+                    <div class="p-2">
+                        <h4 class="text-[9px] font-black text-gray-400 uppercase">Links actuales:</h4>
+                        <div id="current-links-list" class="text-[9px] space-y-1 text-gray-600 italic"></div>
                     </div>
                 </div>
             </div>
@@ -172,44 +207,25 @@
             setTimeout(() => e.classList.add('hidden'), 4000);
         };
 
-        // --- MÉTODOS DE AUTENTICACIÓN ---
-        
-        // Google
-        document.getElementById('google-btn').onclick = () => {
-            signInWithPopup(auth, googleProvider).catch(err => showError("Error Google: " + err.message));
-        };
-
-        // Email Login
-        document.getElementById('login-btn').onclick = () => {
-            signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value)
-                .catch(err => showError("Error: Correo o clave incorrecta."));
-        };
-
-        // Email Registro
-        document.getElementById('register-btn').onclick = () => {
-            createUserWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value)
-                .catch(err => showError("Error: El correo ya existe o es inválido."));
-        };
-
-        // Invitado
-        document.getElementById('guest-btn').onclick = () => {
-            signInAnonymously(auth).catch(err => showError("Error Invitado: " + err.message));
-        };
-
+        // --- AUTH ---
+        document.getElementById('google-btn').onclick = () => signInWithPopup(auth, googleProvider).catch(e => showError(e.message));
+        document.getElementById('login-btn').onclick = () => signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value).catch(e => showError("Clave incorrecta"));
+        document.getElementById('register-btn').onclick = () => createUserWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value).catch(e => showError("Error al registrar"));
+        document.getElementById('guest-btn').onclick = () => signInAnonymously(auth).catch(e => showError("Habilita acceso anónimo en Firebase"));
         document.getElementById('logout-btn').onclick = () => signOut(auth);
 
-        // --- DETECTAR ESTADO DEL USUARIO ---
+        // --- MANEJO DE ESTADO ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const userRef = doc(db, "users", user.uid);
                 const userSnap = await getDoc(userRef);
 
-                // Si es un usuario nuevo (Google, Email o Invitado), creamos su ficha en Firestore
                 if (!userSnap.exists()) {
                     await setDoc(userRef, {
-                        email: user.email || "Invitado Anónimo",
+                        email: user.email || "Invitado",
                         role: "user",
-                        provider: user.providerData[0]?.providerId || "anonymous",
+                        mainTitle: "Residencial Francia",
+                        subTitle: "Panel administrativo",
                         links: []
                     });
                 }
@@ -217,37 +233,37 @@
                 const data = (await getDoc(userRef)).data();
                 document.getElementById('login-modal').classList.remove('active');
                 
-                // Mostrar botón admin si corresponde
-                if (data.role === 'admin') document.getElementById('admin-btn').classList.remove('hidden');
+                // Actualizar Header
+                document.getElementById('nav-title').innerText = data.mainTitle || "Residencial Francia";
+                document.getElementById('nav-subtitle').innerText = data.subTitle || "Panel administrativo";
                 
+                if (data.role === 'admin') document.getElementById('admin-btn').classList.remove('hidden');
                 renderTabs(data.links || []);
             } else {
                 document.getElementById('login-modal').classList.add('active');
                 document.getElementById('admin-btn').classList.add('hidden');
                 document.getElementById('tabs-wrapper').innerHTML = '';
-                document.getElementById('content-frame').src = 'about:blank';
             }
         });
 
-        // --- PESTAÑAS ---
         function renderTabs(links) {
             const wrapper = document.getElementById('tabs-wrapper');
             wrapper.innerHTML = '';
-            links.forEach((link, i) => {
+            links.forEach((l, i) => {
                 const tab = document.createElement('div');
                 tab.className = `tab ${i === 0 ? 'active' : ''}`;
-                tab.innerText = link.title;
+                tab.innerText = l.title;
                 tab.onclick = () => {
                     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
-                    document.getElementById('content-frame').src = link.url;
+                    document.getElementById('content-frame').src = l.url;
                 };
                 wrapper.appendChild(tab);
             });
             if (links.length > 0) document.getElementById('content-frame').src = links[0].url;
         }
 
-        // --- ADMIN FUNCTIONS ---
+        // --- ADMIN ---
         document.getElementById('admin-btn').onclick = () => {
             document.getElementById('admin-modal').classList.add('active');
             loadUsers();
@@ -261,42 +277,42 @@
                 list.innerHTML = '';
                 snap.forEach(d => {
                     const u = d.data();
-                    const btn = document.createElement('div');
-                    btn.className = "p-3 mb-2 bg-white border rounded-lg text-[10px] cursor-pointer hover:border-blue-500 transition flex justify-between items-center";
-                    btn.innerHTML = `
-                        <div class="flex flex-col">
-                            <span class="font-bold text-gray-800">${u.email}</span>
-                            <span class="text-gray-400 uppercase">${u.provider || 'invitado'}</span>
-                        </div>
-                        <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold">${u.links.length} links</span>
-                    `;
-                    btn.onclick = () => {
+                    const div = document.createElement('div');
+                    div.className = "p-3 bg-white border rounded-xl text-[10px] cursor-pointer hover:border-blue-500 flex justify-between items-center transition shadow-sm";
+                    div.innerHTML = `<div><b>${u.email}</b></div> <span class="bg-blue-100 text-blue-700 px-2 rounded">${u.links.length}</span>`;
+                    div.onclick = () => {
                         document.getElementById('target-uid').value = d.id;
+                        document.getElementById('edit-main-title').value = u.mainTitle || "";
+                        document.getElementById('edit-sub-title').value = u.subTitle || "";
                         document.getElementById('selected-user-name').innerText = u.email;
-                        renderCurrentLinks(u.links);
+                        document.getElementById('current-links-list').innerHTML = u.links.map(l => `• ${l.title}`).join('<br>');
                     };
-                    list.appendChild(btn);
+                    list.appendChild(div);
                 });
             });
         }
 
-        function renderCurrentLinks(links) {
-            const div = document.getElementById('current-links-list');
-            div.innerHTML = links.map(l => `• ${l.title} <span class="text-gray-300">(${l.url.substring(0,15)}...)</span>`).join('<br>');
-        }
+        document.getElementById('save-header-btn').onclick = async () => {
+            const uid = document.getElementById('target-uid').value;
+            if(!uid) return alert("Selecciona un usuario");
+            await updateDoc(doc(db, "users", uid), {
+                mainTitle: document.getElementById('edit-main-title').value,
+                subTitle: document.getElementById('edit-sub-title').value
+            });
+            alert("Títulos actualizados");
+        };
 
         document.getElementById('add-link-btn').onclick = async () => {
             const uid = document.getElementById('target-uid').value;
             const title = document.getElementById('link-name').value;
             const url = document.getElementById('link-url').value;
-            if(!uid || !title || !url) return alert("Selecciona un usuario primero");
-
+            if(!uid || !title || !url) return alert("Faltan datos");
             await updateDoc(doc(db, "users", uid), {
                 links: arrayUnion({ title, url })
             });
-            alert("Pestaña agregada con éxito");
             document.getElementById('link-name').value = "";
             document.getElementById('link-url').value = "";
+            alert("Link añadido");
         };
 
     </script>
